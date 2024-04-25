@@ -2,40 +2,21 @@ import { NextFunction, Request, Response } from "express";
 import userModel from "./userModel";
 import bcrypt from "bcrypt";
 import { User } from "./userTypes";
-import { sign } from "jsonwebtoken";
+import { JwtPayload, sign, verify } from "jsonwebtoken";
 import { config } from "../config/config";
 import createHttpError from "http-errors";
+import { validationResult } from "express-validator";
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const error = createHttpError(400, "Invalide Request", { details: errors.array() });
+        // res.send({ errors: errors.array() });
+        return next(error);
+    }
+
     const { name, username, email, password, role } = req.body;
 
-    // client Input vali..
-
-    // empty Case
-    if (!name || !username || !email || !password || !role) {
-        const error = createHttpError(400, "All fields are required");
-        return next(error);
-    }
-
-    // Password 
-    if (password.length < 6 || password.length > 16) {
-        const error = createHttpError(400, "Password must be at least 6 characters long and at most 16");
-        return next(error);
-    }
-    // Case Validations in Pass..
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasLowercase = /[a-z]/.test(password);
-    if (!hasUppercase || !hasLowercase) {
-        const error = createHttpError(400, "Password must contain both uppercase and lowercase characters");
-        return next(error);
-    }
-
-    // Email validation with regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        const error = createHttpError(400, "Invalid email format");
-        return next(error);
-    }
 
     // check: if username already exists
     try {
@@ -82,17 +63,17 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const loginUser = async (req: Request, res: Response, next: NextFunction) => {
-    const { username, email, password } = req.body;
-
-    // client Input vali..
-
-    // empty Case
-    if (!username || !email || !password) {
-        return next(createHttpError(400, "All fields are required"));
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const error = createHttpError(400, "Invalide Request", { details: errors.array() });
+        // res.send({ errors: errors.array() });
+        return next(error);
     }
 
+    const { username, email, password } = req.body;
+
+
     try {
-        // Check: UserName vali...
         const userName = await userModel.findOne({ username });
         if (!userName) {
             return next(createHttpError(404, "User not found with this UserName."));
@@ -112,7 +93,7 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
 
         // token
         const token = sign({ sub: user._id, role: user.role, username }, config.jwtSecret as string, {
-            expiresIn: "7d", // Login Timeout: Token Expires after 7 days..
+            expiresIn: "7d", // Login Timeout: Token Expires after 7 days.. done
             algorithm: "HS256",
         });
 
@@ -122,4 +103,79 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-export { createUser, loginUser };
+const forgetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+    try {
+        const oldUser = await userModel.findOne({ email });
+        if (!oldUser) {
+            return next(createHttpError(404, "User not found."));
+        }
+        const secret = config.jwtSecret + oldUser.password;
+        const token = sign({ email: oldUser.email, id: oldUser._id }, secret, {
+            expiresIn: "10m",
+            algorithm: "HS256"
+        });
+        const link = `${config.frontendDomain}/reset-password/${oldUser._id}/${token}`;
+        // to be changed later... rest the flow is right 
+        // const transporter = nodemailer.createTransport({
+        //     service: "gmail",
+        //     auth: {
+        //         user: "sanjay@gmail.com",
+        //         pass: "Techno@5821#",
+        //     },
+        // });
+
+        // const mailOptions = {
+        //     from: "sanjay@gmail.com",
+        //     to: `${email}`,
+        //     subject: "Password Reset",
+        //     text: link,
+        // };
+
+        // transporter.sendMail(mailOptions, function (error, info) {
+        //     if (error) {
+        //         console.log(error);
+        //     } else {
+        //         console.log("Email sent: " + info.response);
+        //     }
+        // });
+        console.log(link);
+        res.status(200).json({ message: "mail sent", url: link });
+    } catch (error) {
+        return next(createHttpError(500, "Server issue while Forgot Password."));
+    }
+}
+
+const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    const { id, token } = req.params;
+    const { password } = req.body;
+    if (!password || password === "") {
+        return next(createHttpError(404, "No Password Input."));
+    }
+
+    const oldUser = await userModel.findOne({ _id: id });
+    if (!oldUser) {
+        return res.json({ status: "User Not Exists!!" });
+    }
+    const secret = config.jwtSecret + oldUser.password;
+    try {
+        const verifyy = verify(token, secret) as JwtPayload;
+        const encryptedPassword = await bcrypt.hash(password, 10);
+        await userModel.updateOne(
+            {
+                _id: id,
+            },
+            {
+                $set: {
+                    password: encryptedPassword,
+                },
+            }
+        );
+
+        res.status(201).json({ message: "Password reset done", email: verifyy.email, status: "verified" });
+    } catch (error) {
+        return next(createHttpError(500, "Server issue while Reseting the Password."));
+    }
+}
+
+export { createUser, loginUser, forgetPassword, resetPassword };
