@@ -6,6 +6,7 @@ import { JwtPayload, sign, verify } from "jsonwebtoken";
 import { config } from "../config/config";
 import createHttpError from "http-errors";
 import { validationResult } from "express-validator";
+import nodemailer from 'nodemailer'
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
@@ -116,29 +117,30 @@ const forgetPassword = async (req: Request, res: Response, next: NextFunction) =
             algorithm: "HS256"
         });
         const link = `${config.frontendDomain}/reset-password/${oldUser._id}/${token}`;
-        // to be changed later... rest the flow is right 
-        // const transporter = nodemailer.createTransport({
-        //     service: "gmail",
-        //     auth: {
-        //         user: "sanjay@gmail.com",
-        //         pass: "Techno@5821#",
-        //     },
-        // });
+        // MailTrap as Host(Dev..)
+        var transporter = nodemailer.createTransport({
+            host: "sandbox.smtp.mailtrap.io",
+            port: 2525,
+            auth: {
+              user: "4357750a7f8c49",
+              pass: "93324c3550c42c"
+            }
+          });
 
-        // const mailOptions = {
-        //     from: "sanjay@gmail.com",
-        //     to: `${email}`,
-        //     subject: "Password Reset",
-        //     text: link,
-        // };
+        const mailOptions = {
+            from: "sanjay@gmail.com",
+            to: `${email}`,
+            subject: "Password Reset",
+            text: link,
+        };
 
-        // transporter.sendMail(mailOptions, function (error, info) {
-        //     if (error) {
-        //         console.log(error);
-        //     } else {
-        //         console.log("Email sent: " + info.response);
-        //     }
-        // });
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log("Email sent: " + info.response);
+            }
+        });
         console.log(link);
         res.status(200).json({ message: "mail sent", url: link });
     } catch (error) {

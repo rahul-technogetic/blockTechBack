@@ -1,6 +1,5 @@
 import express from "express";
 import { createUser, forgetPassword, loginUser, resetPassword } from "./userControllers";
-import { body } from 'express-validator'
 import { loginValidationArray, registrationValidationArray } from "../helpers/validators";
 
 const userRouter = express.Router();
