@@ -1,0 +1,20 @@
+{
+  "name": "blocktech",
+  "version": "1.0.0",
+  "description": "backend for the BlockTech",
+  "main": "server.ts",
+  "scripts": {
+    "dev":"nodemon server.ts"
+  },
+  "keywords": [
+    "blocktech"
+  ],
+  "author": " <technogetic>",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "nodemon": "^3.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
