@@ -139,10 +139,10 @@ const forgetPassword = async (req: Request, res: Response, next: NextFunction) =
                 console.log(error);
             } else {
                 console.log("Email sent: " + info.response);
+                res.status(200).json({ message: "mail sent", url: link });
             }
         });
-        console.log(link);
-        res.status(200).json({ message: "mail sent", url: link });
+        // console.log(link);
     } catch (error) {
         return next(createHttpError(500, "Server issue while Forgot Password."));
     }
