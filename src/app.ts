@@ -1,6 +1,6 @@
 import express from 'express'
 import globalErrorHandler from "./middlewares/globalErrorHandler";
-import userRouter from './User/userRouter';
+import userRouter from './routes/userRouter';
 import { config } from './config/config';
 import cors from 'cors'
 

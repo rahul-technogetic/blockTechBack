@@ -4,8 +4,9 @@
   "description": "backend for the BlockTech",
   "main": "server.ts",
   "scripts": {
-    "start": "node server.ts",
-    "dev": "nodemon server.ts"
+    "start": "tsc && node build/server.js",
+    "nodemon": "nodemon build/server.js",
+    "buildWatch": "tsc --watch"
   },
   "keywords": [
     "blocktech"

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import userModel from "./userModel";
+import userModel from "../models/userModel";
 import bcrypt from "bcrypt";
-import { User } from "./userTypes";
+import { User } from "../types/userTypes";
 import { JwtPayload, sign, verify } from "jsonwebtoken";
 import { config } from "../config/config";
 import createHttpError from "http-errors";
