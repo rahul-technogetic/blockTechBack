@@ -5,16 +5,9 @@ import { User } from "../types/userTypes";
 import { JwtPayload, sign, verify } from "jsonwebtoken";
 import { config } from "../config/config";
 import createHttpError from "http-errors";
-import { validationResult } from "express-validator";
 import nodemailer from 'nodemailer'
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        const error = createHttpError(400, "Invalide Request", { details: errors.array() });
-        // res.send({ errors: errors.array() });
-        return next(error);
-    }
 
     const { name, username, email, password, role } = req.body;
 
@@ -64,12 +57,6 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const loginUser = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        const error = createHttpError(400, "Invalide Request", { details: errors.array() });
-        // res.send({ errors: errors.array() });
-        return next(error);
-    }
 
     const { username, email, password } = req.body;
 
@@ -122,10 +109,10 @@ const forgetPassword = async (req: Request, res: Response, next: NextFunction) =
             host: "sandbox.smtp.mailtrap.io",
             port: 2525,
             auth: {
-              user: "4357750a7f8c49",
-              pass: "93324c3550c42c"
+                user: "4357750a7f8c49",
+                pass: "93324c3550c42c"
             }
-          });
+        });
 
         const mailOptions = {
             from: "sanjay@gmail.com",

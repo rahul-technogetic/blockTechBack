@@ -6,7 +6,9 @@
   "scripts": {
     "start": "tsc && node build/server.js",
     "nodemon": "nodemon build/server.js",
-    "buildWatch": "tsc --watch"
+    "buildWatch": "tsc --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [
     "blocktech"
