@@ -37,6 +37,7 @@
     "express-validator": "^7.0.1",
     "http-errors": "^2.0.0",
     "jsonwebtoken": "^9.0.2",
+    "mailgun-js": "^0.22.0",
     "mongoose": "^8.3.2",
     "nodemailer": "^6.9.13"
   }
