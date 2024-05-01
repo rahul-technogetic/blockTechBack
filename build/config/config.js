@@ -11,3 +11,4 @@ const _confiq = {
     frontendDomain: process.env.FRONTEND_DOMAIN,
 };
 exports.config = Object.freeze(_confiq);
+//# sourceMappingURL=config.js.map

@@ -9,3 +9,4 @@ const globalErrorHandler = (err, req, res, next) => {
     });
 };
 exports.default = globalErrorHandler;
+//# sourceMappingURL=globalErrorHandler.js.map

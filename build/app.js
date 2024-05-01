@@ -16,7 +16,7 @@ app.use((0, cors_1.default)({
 app.get("/", (req, res, next) => {
     res.json({ message: "BlockTech Running" });
 });
-// api routes
 app.use('/api/users', userRouter_1.default);
 app.use(globalErrorHandler_1.default);
 exports.default = app;
+//# sourceMappingURL=app.js.map

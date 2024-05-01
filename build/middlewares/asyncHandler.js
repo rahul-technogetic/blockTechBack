@@ -7,3 +7,4 @@ const asyncHandler = (routeHandler) => {
     };
 };
 exports.asyncHandler = asyncHandler;
+//# sourceMappingURL=asyncHandler.js.map

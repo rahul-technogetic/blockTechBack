@@ -26,3 +26,4 @@ const userSchema = new mongoose_1.default.Schema({
     role: { type: String, enum: ['admin', 'user', 'account manager', 'property manager'], default: 'user' },
 }, { timestamps: true });
 exports.default = mongoose_1.default.model("User", userSchema);
+//# sourceMappingURL=userModel.js.map
