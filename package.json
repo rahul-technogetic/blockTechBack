@@ -4,7 +4,11 @@
   "description": "backend for the BlockTech",
   "main": "server.ts",
   "scripts": {
-    "dev":"nodemon server.ts"
+    "start": "tsc && node build/server.js",
+    "nodemon": "nodemon build/server.js",
+    "buildWatch": "tsc --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [
     "blocktech"
@@ -12,9 +16,31 @@
   "author": " <technogetic>",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.1.1",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/http-errors": "^2.0.4",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.7",
+    "@types/nodemailer": "^6.4.14",
+    "eslint": "^8.57.0",
+    "globals": "^15.0.0",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.7.1"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-validator": "^7.0.1",
+    "http-errors": "^2.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mailgun-js": "^0.22.0",
+    "mongoose": "^8.3.2",
+    "nodemailer": "^6.9.13"
   }
 }
