@@ -5,26 +5,12 @@ import { User } from "../types/userTypes";
 import { JwtPayload, sign, verify } from "jsonwebtoken";
 import { config } from "../config/config";
 import createHttpError from "http-errors";
-import nodemailer from 'nodemailer'
+import { sendEmail } from "../services/emailSender";
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
 
-    const { name, username, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
-
-    // check: if username already exists
-    try {
-        const user = await userModel.findOne({ username });
-        if (user) {
-            const error = createHttpError(
-                400,
-                "User already exists with this username, try to enter a Unique one."
-            );
-            return next(error);
-        }
-    } catch (err) {
-        return next(createHttpError(500, "Error while getting user"));
-    }
     // check: if email already exists
     try {
         const user = await userModel.findOne({ email });
@@ -46,9 +32,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         newUser = await userModel.create({
             name,
             email,
-            username,
             password: hashedPassword,
-            role
         });
         res.status(201).json({ message: "User Created, Now Login with your Credentials!" });
     } catch (err) {
@@ -58,14 +42,11 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 
 const loginUser = async (req: Request, res: Response, next: NextFunction) => {
 
-    const { username, email, password } = req.body;
+
+    const { email, password } = req.body;
 
 
     try {
-        const userName = await userModel.findOne({ username });
-        if (!userName) {
-            return next(createHttpError(404, "User not found with this UserName."));
-        }
 
         // Check: Email vali...
         const user = await userModel.findOne({ email });
@@ -80,10 +61,12 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
         }
 
         // token
-        const token = sign({ sub: user._id, role: user.role, username }, config.jwtSecret as string, {
+        const token = sign({ sub: user._id, role: user.role }, config.jwtSecret as string, {
             expiresIn: "7d", // Login Timeout: Token Expires after 7 days.. done
-            algorithm: "HS256",
         });
+
+        user.accessToken = token;
+        await user.save();
 
         res.json({ accessToken: token });
     } catch (err) {
@@ -101,35 +84,18 @@ const forgetPassword = async (req: Request, res: Response, next: NextFunction) =
         const secret = config.jwtSecret + oldUser.password;
         const token = sign({ email: oldUser.email, id: oldUser._id }, secret, {
             expiresIn: "10m",
-            algorithm: "HS256"
         });
+
+        const subject = "Forgot Password";
         const link = `${config.frontendDomain}/reset-password/${oldUser._id}/${token}`;
-        // MailTrap as Host(Dev..)
-        var transporter = nodemailer.createTransport({
-            host: "sandbox.smtp.mailtrap.io",
-            port: 2525,
-            auth: {
-                user: "4357750a7f8c49",
-                pass: "93324c3550c42c"
-            }
-        });
-
-        const mailOptions = {
-            from: "sanjay@gmail.com",
-            to: `${email}`,
-            subject: "Password Reset",
-            text: link,
-        };
-
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log(error);
-            } else {
-                console.log("Email sent: " + info.response);
-                res.status(200).json({ message: "mail sent", url: link });
-            }
-        });
-        // console.log(link);
+        const text = `Hello ${oldUser?.name},\n\ To Reset password,\n\nPlease click on the following link to verify your account: ${link}\n\nBest regards,\nTeam BlockTech`;
+        const emailSent = await sendEmail(email, subject, text);
+        if (emailSent) {
+            console.log("Email sent successfully");
+            res.status(201).json({ message: "mail sent", url: link });
+        } else {
+            return next(createHttpError(500, "Error sending email!"));
+        }
     } catch (error) {
         return next(createHttpError(500, "Server issue while Forgot Password."));
     }
@@ -144,11 +110,12 @@ const resetPassword = async (req: Request, res: Response, next: NextFunction) =>
 
     const oldUser = await userModel.findOne({ _id: id });
     if (!oldUser) {
-        return res.json({ status: "User Not Exists!!" });
+        return next(createHttpError(400, "User Not Exists!"));
     }
     const secret = config.jwtSecret + oldUser.password;
     try {
         const verifyy = verify(token, secret) as JwtPayload;
+
         const encryptedPassword = await bcrypt.hash(password, 10);
         await userModel.updateOne(
             {

@@ -8,10 +8,6 @@ const express_validator_1 = require("express-validator");
 const http_errors_1 = __importDefault(require("http-errors"));
 exports.registrationValidationArray = [
     (0, express_validator_1.body)('name').trim().notEmpty().withMessage('Name is required'),
-    (0, express_validator_1.body)('username')
-        .trim()
-        .notEmpty().withMessage('Username is required')
-        .isLength({ max: 20 }).withMessage('Username must be at most 20 characters long'),
     (0, express_validator_1.body)('password')
         .trim()
         .notEmpty().withMessage('Password is required')
@@ -26,13 +22,8 @@ exports.registrationValidationArray = [
         .trim()
         .notEmpty().withMessage('Email is required')
         .isEmail().withMessage('Invalid email format'),
-    (0, express_validator_1.body)('role').trim().notEmpty().withMessage('Role is required'),
 ];
 exports.loginValidationArray = [
-    (0, express_validator_1.body)('username')
-        .trim()
-        .notEmpty().withMessage('Username is required')
-        .isLength({ max: 20 }).withMessage('Username must be at most 20 characters long'),
     (0, express_validator_1.body)('password')
         .trim()
         .notEmpty().withMessage('Password is required')

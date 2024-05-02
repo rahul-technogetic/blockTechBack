@@ -4,7 +4,7 @@
   "description": "backend for the BlockTech",
   "main": "server.ts",
   "scripts": {
-    "start": "tsc && node build/server.js",
+    "start": "PORT=8020 MONGO_URI='mongodb+srv://hoyejo5507:4Z2uCCexb7utFk6a@firstclus.ild4rgx.mongodb.net/blocktechmain?retryWrites=true&w=majority&appName=firstClus' NODE_ENV=development JWT_SECRET=techkcolb2343 FRONTEND_DOMAIN=http://localhost:5173 node server.js",
     "nodemon": "nodemon build/server.js",
     "buildWatch": "tsc --watch",
     "lint": "eslint .",
