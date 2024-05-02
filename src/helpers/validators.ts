@@ -4,10 +4,6 @@ import createHttpError from "http-errors";
 
 export const registrationValidationArray = [
     body('name').trim().notEmpty().withMessage('Name is required'),
-    body('username')
-        .trim()
-        .notEmpty().withMessage('Username is required')
-        .isLength({ max: 20 }).withMessage('Username must be at most 20 characters long'),
     body('password')
         .trim()
         .notEmpty().withMessage('Password is required')
@@ -22,14 +18,9 @@ export const registrationValidationArray = [
         .trim()
         .notEmpty().withMessage('Email is required')
         .isEmail().withMessage('Invalid email format'),
-    body('role').trim().notEmpty().withMessage('Role is required'),
 ];
 
 export const loginValidationArray = [
-    body('username')
-        .trim()
-        .notEmpty().withMessage('Username is required')
-        .isLength({ max: 20 }).withMessage('Username must be at most 20 characters long'),
     body('password')
         .trim()
         .notEmpty().withMessage('Password is required')
@@ -41,8 +32,9 @@ export const loginValidationArray = [
 ];
 
 export const handleValidationResult = (req: Request, res: Response, next: NextFunction) => {
-
+    
     const errors = validationResult(req);
+
     if (!errors.isEmpty()) {
         const error = createHttpError(400, "Invalide Request", { details: errors.array() });
         // res.send({ errors: errors.array() });

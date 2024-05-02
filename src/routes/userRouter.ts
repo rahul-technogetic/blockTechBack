@@ -6,8 +6,8 @@ const userRouter = express.Router();
 
 
 
-userRouter.post("/register", registrationValidationArray, handleValidationResult, createUser);
-userRouter.post("/login", loginValidationArray, handleValidationResult, loginUser);
+userRouter.post("/register", registrationValidationArray,handleValidationResult, createUser);
+userRouter.post("/login", loginValidationArray,handleValidationResult, loginUser);
 userRouter.post("/forgot-password", forgetPassword);
 userRouter.post("/reset-password/:id/:token", resetPassword);
 
