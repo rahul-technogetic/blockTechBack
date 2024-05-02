@@ -4,22 +4,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEmail = void 0;
-const mailgun_js_1 = __importDefault(require("mailgun-js"));
-const DOMAIN = "sandbox90c1c47a231c4f04a05fd5d627d005ad.mailgun.org";
-const mg = (0, mailgun_js_1.default)({
-    apiKey: "ecbd0194dca6181c5208a8c90642ee0c-86220e6a-eae6cac0",
-    domain: DOMAIN,
-});
+const nodemailer_1 = __importDefault(require("nodemailer"));
 const sendEmail = async (to, subject, text) => {
     try {
-        const data = {
-            from: "Mailgun Sandbox <postmaster@sandbox90c1c47a231c4f04a05fd5d627d005ad.mailgun.org>",
+        const transporter = nodemailer_1.default.createTransport({
+            host: "sandbox.smtp.mailtrap.io",
+            port: 2525,
+            auth: {
+                user: "4357750a7f8c49",
+                pass: "93324c3550c42c"
+            }
+        });
+        const mailOptions = {
+            from: "your-email@gmail.com",
             to,
             subject,
             text,
         };
-        await mg.messages().send(data);
-        console.log("Email sent successfully");
+        const info = await transporter.sendMail(mailOptions);
+        console.log("Email sent: " + info.response);
         return true;
     }
     catch (error) {

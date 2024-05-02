@@ -9,19 +9,9 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = require("jsonwebtoken");
 const config_1 = require("../config/config");
 const http_errors_1 = __importDefault(require("http-errors"));
-const nodemailer_1 = __importDefault(require("nodemailer"));
+const emailSender_1 = require("../services/emailSender");
 const createUser = async (req, res, next) => {
-    const { name, username, email, password, role } = req.body;
-    try {
-        const user = await userModel_1.default.findOne({ username });
-        if (user) {
-            const error = (0, http_errors_1.default)(400, "User already exists with this username, try to enter a Unique one.");
-            return next(error);
-        }
-    }
-    catch (err) {
-        return next((0, http_errors_1.default)(500, "Error while getting user"));
-    }
+    const { name, email, password } = req.body;
     try {
         const user = await userModel_1.default.findOne({ email });
         if (user) {
@@ -38,9 +28,7 @@ const createUser = async (req, res, next) => {
         newUser = await userModel_1.default.create({
             name,
             email,
-            username,
             password: hashedPassword,
-            role
         });
         res.status(201).json({ message: "User Created, Now Login with your Credentials!" });
     }
@@ -50,12 +38,8 @@ const createUser = async (req, res, next) => {
 };
 exports.createUser = createUser;
 const loginUser = async (req, res, next) => {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
     try {
-        const userName = await userModel_1.default.findOne({ username });
-        if (!userName) {
-            return next((0, http_errors_1.default)(404, "User not found with this UserName."));
-        }
         const user = await userModel_1.default.findOne({ email });
         if (!user) {
             return next((0, http_errors_1.default)(404, "User not found with this Email."));
@@ -64,10 +48,11 @@ const loginUser = async (req, res, next) => {
         if (!isMatch) {
             return next((0, http_errors_1.default)(400, "Password incorrect!"));
         }
-        const token = (0, jsonwebtoken_1.sign)({ sub: user._id, role: user.role, username }, config_1.config.jwtSecret, {
+        const token = (0, jsonwebtoken_1.sign)({ sub: user._id, role: user.role }, config_1.config.jwtSecret, {
             expiresIn: "7d",
-            algorithm: "HS256",
         });
+        user.accessToken = token;
+        await user.save();
         res.json({ accessToken: token });
     }
     catch (err) {
@@ -85,32 +70,18 @@ const forgetPassword = async (req, res, next) => {
         const secret = config_1.config.jwtSecret + oldUser.password;
         const token = (0, jsonwebtoken_1.sign)({ email: oldUser.email, id: oldUser._id }, secret, {
             expiresIn: "10m",
-            algorithm: "HS256"
         });
+        const subject = "Forgot Password";
         const link = `${config_1.config.frontendDomain}/reset-password/${oldUser._id}/${token}`;
-        var transporter = nodemailer_1.default.createTransport({
-            host: "sandbox.smtp.mailtrap.io",
-            port: 2525,
-            auth: {
-                user: "4357750a7f8c49",
-                pass: "93324c3550c42c"
-            }
-        });
-        const mailOptions = {
-            from: "sanjay@gmail.com",
-            to: `${email}`,
-            subject: "Password Reset",
-            text: link,
-        };
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log(error);
-            }
-            else {
-                console.log("Email sent: " + info.response);
-                res.status(200).json({ message: "mail sent", url: link });
-            }
-        });
+        const text = `Hello ${oldUser === null || oldUser === void 0 ? void 0 : oldUser.name},\n\ To Reset password,\n\nPlease click on the following link to verify your account: ${link}\n\nBest regards,\nTeam BlockTech`;
+        const emailSent = await (0, emailSender_1.sendEmail)(email, subject, text);
+        if (emailSent) {
+            console.log("Email sent successfully");
+            res.status(201).json({ message: "mail sent", url: link });
+        }
+        else {
+            return next((0, http_errors_1.default)(500, "Error sending email!"));
+        }
     }
     catch (error) {
         return next((0, http_errors_1.default)(500, "Server issue while Forgot Password."));
@@ -125,7 +96,7 @@ const resetPassword = async (req, res, next) => {
     }
     const oldUser = await userModel_1.default.findOne({ _id: id });
     if (!oldUser) {
-        return res.json({ status: "User Not Exists!!" });
+        return next((0, http_errors_1.default)(400, "User Not Exists!"));
     }
     const secret = config_1.config.jwtSecret + oldUser.password;
     try {
